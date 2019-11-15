@@ -1,5 +1,6 @@
 const req = require("request-promise");
 const config = require("../config.json");
+const misc = require("./misc")
 
 var logger = global.logger;
 
@@ -7,6 +8,7 @@ var e = {};
 var token = null;
 
 e.login = () => {
+    misc.print("Server    :", `${config.name}(${config.url})`)
     logger.info(`User ${config.username} logging into ${config.name}`);
     return req({
         uri: `${config.url}/api/a/rbac/login`,

@@ -59,3 +59,11 @@ typings/
 
 # next.js build output
 .next
+
+backup.json
+backup.map.json
+backup.select.json
+backup.tmp.json
+backup.tmp.map.json
+restore.map.json
+clear.sh
