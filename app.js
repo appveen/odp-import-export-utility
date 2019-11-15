@@ -39,7 +39,7 @@ const backup = require("./utils/backupHandler")
 const misc = require("./utils/misc")
 const cli = require("./cli/cli")
 
-misc.header('ODP CLI Utility');
+misc.header('ODP Config. Import/Export Utility');
 
 cli.pickMode()
     .then(_mode => {
