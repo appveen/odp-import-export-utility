@@ -30,7 +30,17 @@ e.login = () => {
         });
 }
 
-e.fetchRoles = () => {
+function fetchDataServices() {
+    let URL = "/api/a/sm/service";
+    return api.get(URL, qs).then(_d => {
+        backup.save("dataservices", _d);
+        _d.forEach(_ds => backup.backupMapper("dataservice", _ds._id, _ds.name))
+        misc.done("Data services", _d.length.toString())
+        return _d
+    }, _e => misc.error("Error fetching Data services", _e))
+};
+
+function fetchRoles() {
     let URL = "/api/a/rbac/role";
     let query = {
         count: -1,
@@ -45,26 +55,17 @@ e.fetchRoles = () => {
     });
 };
 
-e.fetchDataServices = () => {
-    let URL = "/api/a/sm/service";
-    return api.get(URL, qs).then(_d => {
-        backup.save("dataservices", _d);
-        _d.forEach(_ds => backup.backupMapper("dataservice", _ds._id, _ds.name))
-        misc.done("Data services", _d.length.toString())
-        return _d
-    }, _e => misc.error("Error fetching Data services", _e))
-};
-
-e.fetchLibrary = () => {
+function fetchLibrary() {
     let URL = "/api/a/sm/globalSchema";
     return api.get(URL, qs).then(_d => {
+        _d.forEach(_lib => _lib.services = [])
         backup.save("library", _d);
         _d.forEach(_lib => backup.backupMapper("library", _lib._id, _lib.name))
         misc.done("Libraries", _d.length.toString())
     }, _e => misc.error("Error fetching libraries", _e));
 };
 
-e.fetchAgents = () => {
+function fetchAgents() {
     let URL = "/api/a/pm/agentRegistry";
     var queryString = {
         count: -1,
@@ -81,7 +82,7 @@ e.fetchAgents = () => {
     }, _e => misc.error("Error fetching app agents", _e));
 };
 
-e.fetchDataFormats = () => {
+function fetchDataFormats() {
     let URL = "/api/a/pm/dataFormat"
     return api.get(URL, qs).then(_d => {
         backup.save("dataformats", _d);
@@ -118,7 +119,7 @@ function __fetchSecrets(_listOfPartners) {
         .then(() => misc.done("Partner secrets", secretCounter.toString()));
 };
 
-e.fetchPartners = () => {
+function fetchPartners() {
     let URL = "/api/a/pm/partner"
     return api.get(URL, qs).then(_d => {
         backup.save("partners", _d);
@@ -130,7 +131,7 @@ e.fetchPartners = () => {
     }, _e => misc.error("Error fetching Partners", _e));
 };
 
-e.fetchNanoServices = () => {
+function fetchNanoServices() {
     let URL = "/api/a/pm/nanoService"
     return api.get(URL, qs).then(_d => {
         backup.save("nanoservices", _d);
@@ -139,15 +140,9 @@ e.fetchNanoServices = () => {
     }, _e => misc.error("Error fetching nano-services", _e));
 };
 
-e.fetchFlows = () => {
+function fetchFlows() {
     var flowData = [];
     var flowMap = {};
-    var bar = new ProgressBar('Flows [:bar] :percent :current/:total', {
-        complete: '#'.gray,
-        incomplete: ' ',
-        total: flows.length,
-        width: 50
-    });
     return flows.reduce((_p, _c) => {
             return _p.then(_ => {
                 return new Promise((_res, _rej) => {
@@ -157,7 +152,6 @@ e.fetchFlows = () => {
                         if (!flowMap[_d.partner]) flowMap[_d.partner] = {};
                         flowMap[_d.partner][_d._id] = _d.name;
                         _res();
-                        bar.tick();
                     }, _e => {
                         misc.error(`Error fetching Flow ${_c}`, _e)
                         _rej();
@@ -172,7 +166,7 @@ e.fetchFlows = () => {
         .then(_ => misc.done("Flows", flows.length.toString()))
 };
 
-e.fetchBookmarks = () => {
+function fetchBookmarks() {
     var numberOfBookmarks = 0;
     var qs = {
         count: -1
@@ -187,7 +181,7 @@ e.fetchBookmarks = () => {
         .then(_ => misc.done("Bookmarks", numberOfBookmarks.toString()))
 };
 
-e.fetchGroups = () => {
+function fetchGroups() {
     var numberOfGroups = 0;
     var qs = {
         count: -1
@@ -197,6 +191,20 @@ e.fetchGroups = () => {
         .then(_ => api.get(`/api/a/rbac/${selectedApp}/group`, qs))
         .then(_groups => backup.save("groups", _groups))
         .then(_ => misc.done("Groups", numberOfGroups.toString()))
+};
+
+e.startMapping = () => {
+  misc.print("Scanning the configurations within the app...", "")
+  return fetchDataServices()
+  .then(() => fetchRoles())
+  .then(() => fetchLibrary())
+  .then(() => fetchDataFormats())
+  .then(() => fetchNanoServices())
+  .then(() => fetchAgents())
+  .then(() => fetchPartners())
+  .then(() => fetchFlows())
+  .then(() => fetchBookmarks())
+  .then(() => fetchGroups())
 };
 
 module.exports = e;

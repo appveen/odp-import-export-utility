@@ -32,52 +32,44 @@ global.logger = logger;
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 const odp_fetch = require("./odp/fetch")
+const odp_customise = require("./odp/customise")
 const odp_upsert = require("./odp/upsert")
 const odp_delete = require("./odp/delete")
 const backup = require("./utils/backupHandler")
 const misc = require("./utils/misc")
 const cli = require("./cli/cli")
 
-misc.header('ODP CLI Utility');
+misc.header('ODP Config. Import/Export Utility');
 
 cli.pickMode()
     .then(_mode => {
         if (_mode == "Backup") _backup()
         if (_mode == "Restore") _restore()
-        if (_mode == "Delete All") _delete()
+        // if (_mode == "Delete All") _delete()
     })
 
 function _backup() {
     backup.init();
     odp_fetch.login()
-        .then(_ => odp_fetch.fetchDataServices())
-        .then(_ => odp_fetch.fetchRoles())
-        .then(_ => odp_fetch.fetchLibrary())
-        .then(_ => odp_fetch.fetchDataFormats())
-        .then(_ => odp_fetch.fetchNanoServices())
-        .then(_ => odp_fetch.fetchAgents())
-        .then(_ => odp_fetch.fetchPartners())
-        .then(_ => odp_fetch.fetchFlows())
-        .then(_ => odp_fetch.fetchBookmarks())
-        .then(_ => odp_fetch.fetchGroups())
-        .then(_ => misc.header('Backup complete!'))
+    .then(() => odp_fetch.startMapping())
+    .then(() => odp_customise.customBackup())
 }
 
 function _restore() {
     backup.restoreInit();
     odp_upsert.login()
-        .then(_ => odp_upsert.upsertLibrary())
-        .then(_ => odp_upsert.upsertDataFormats())
-        .then(_ => odp_upsert.upsertDataServices())
-        .then(_ => odp_upsert.upsertRoles())
-        .then(_ => odp_upsert.upsertNanoServices())
-        .then(_ => odp_upsert.upsertAgents())
-        .then(_ => odp_upsert.upsertPartnerSecrets())
-        .then(_ => odp_upsert.upsertPartners())
-        .then(_ => odp_upsert.upsertFlows())
-        .then(_ => odp_upsert.upsertBookmarks())
-        .then(_ => odp_upsert.upsertGroups())
-        .then(_ => misc.header('Restore complete!'))
+        .then(() => odp_upsert.upsertLibrary())
+        .then(() => odp_upsert.upsertDataFormats())
+        .then(() => odp_upsert.upsertDataServices())
+        .then(() => odp_upsert.upsertRoles())
+        .then(() => odp_upsert.upsertNanoServices())
+        .then(() => odp_upsert.upsertAgents())
+        .then(() => odp_upsert.upsertPartnerSecrets())
+        .then(() => odp_upsert.upsertPartners())
+        .then(() => odp_upsert.upsertFlows())
+        .then(() => odp_upsert.upsertBookmarks())
+        .then(() => odp_upsert.upsertGroups())
+        .then(() => misc.header('Restore complete!'))
 }
 
 function _delete() {
