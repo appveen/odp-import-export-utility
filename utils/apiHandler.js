@@ -24,6 +24,9 @@ e.login = () => {
         _e => {
             logger.error(`Unable to login to ${config.name}`);
             logger.error(_e.message)
+            console.log(`Unable to login to ${config.name}`)
+            misc.error("Error",_e.message)
+            process.exit()
         }
     );
 };
