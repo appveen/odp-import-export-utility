@@ -1,6 +1,6 @@
 const log4js = require("log4js");
 let d = new Date();
-let fileName = `odp_backup_restore_${d.toISOString()}.log`
+let fileName = `odp_backup_restore_${d.toISOString().replace(":", "-")}.log`
 log4js.configure({
     appenders: {
         fileOut: {
