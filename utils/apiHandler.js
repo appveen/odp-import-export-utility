@@ -63,6 +63,7 @@ e.post = (_url, _body) => {
         return _d;
     }, _e => {
         logger.error(_e.message);
+        logger.error(JSON.stringify(_body));
         return _e.message;
     });
 };
@@ -81,6 +82,7 @@ e.put = (_url, _body) => {
         return _d;
     }, _e => {
         logger.error(_e.message);
+        logger.error(JSON.stringify(_body));
         return _e.message;
     });
 };
