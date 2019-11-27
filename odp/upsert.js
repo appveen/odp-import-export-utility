@@ -24,7 +24,7 @@ e.login = () => {
 function __strip(_data) {
     delete _data._id;
     delete _data._metadata;
-    delete _data._v;
+    delete _data.__v;
     return _data
 };
 
@@ -48,6 +48,7 @@ function __exists(_api, _name, _qs) {
 function __upsert(_type, _api, _data, _qs) {
     return __exists(_api, _data.name, _qs)
         .then(_id => {
+            logger.info(_id);
             let data = JSON.parse(JSON.stringify(_data));
             data.app = selectedApp;
             if (data.definition) data.definition = JSON.parse(data.definition);

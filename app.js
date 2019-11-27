@@ -1,12 +1,13 @@
 const log4js = require("log4js");
 let d = new Date();
-let fileName = `odp_backup_restore_${d.toISOString()}.log`
+d = d.toISOString().replace(/:/gi, "-")
+let fileName = `odp_backup_restore_${d}.log`
 log4js.configure({
     appenders: {
         fileOut: {
             type: 'file',
             filename: fileName,
-            maxLogSize: 100000,
+            maxLogSize: 500000,
             layout: {
                 type: 'basic'
             }

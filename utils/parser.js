@@ -228,6 +228,24 @@ e.repairFlow = _flow => {
     substituitionPairs.forEach(_pair => {
         flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
+
+    for(_mapDs in map_backup.dataservice){
+      for(_restoreDs in map_restore.dataservice){
+        let index = __getIndicesOf(_mapDs, flow)
+        if (index.length) {
+          flow = flow.replace(new RegExp(_mapDs, 'g'), _restoreDs)
+        }
+      }
+    }
+
+    for(_mapDF in map_backup.dataformat){
+      for(_restoreDF in map_restore.dataformat){
+        let index = __getIndicesOf(_mapDF, flow)
+        if (index.length) {
+          flow = flow.replace(new RegExp(_mapDF, 'g'), _restoreDF)
+        }
+      }
+    }
     return JSON.parse(flow);
 };
 
