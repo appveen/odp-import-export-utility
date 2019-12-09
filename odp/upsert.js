@@ -280,6 +280,7 @@ e.upsertFlows = () => {
                 flow.app = selectedApp;
                 flow = parser.repairFlow(flow);
                 delete flow.port;
+                delete flow.status;
                 let qs = {
                     page: 1,
                     count: -1,
