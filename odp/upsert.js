@@ -17,7 +17,6 @@ e.login = () => {
         .then(_d => cli.pickApp(_d))
         .then(_d => {
             selectedApp = _d;
-            backup.save("app", selectedApp);
         });
 };
 
@@ -48,7 +47,7 @@ function __exists(_api, _name, _qs) {
 function __upsert(_type, _api, _data, _qs) {
     return __exists(_api, _data.name, _qs)
         .then(_id => {
-            logger.info(_id);
+            logger.info(`_id :: ${_id}`);
             let data = JSON.parse(JSON.stringify(_data));
             data.app = selectedApp;
             if (data.definition) data.definition = JSON.parse(data.definition);

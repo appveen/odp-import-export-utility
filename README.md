@@ -21,7 +21,7 @@ Update the `config.json` with the connection details of your server,
 
 # Run
 
-1. Run the utility by issuing the command - `node app.js`
+1. Run the utility by issuing the command - `node app.js` or `LOGLEVEL=DEBUG node app.js` to run in debug mode
 2. Follow the on-screen instructions.
 
 ~ 🍻~
