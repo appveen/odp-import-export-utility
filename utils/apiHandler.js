@@ -33,6 +33,7 @@ e.login = () => {
 
 e.get = (_url, _qs) => {
     logger.info(`GET :: ${config.url}${_url}`)
+    logger.debug(JSON.stringify(_qs))
     return req({
         method: "GET",
         uri: `${config.url}${_url}`,
@@ -51,6 +52,7 @@ e.get = (_url, _qs) => {
 
 e.post = (_url, _body) => {
     logger.info(`POST :: ${config.url}${_url}`)
+    logger.debug(JSON.stringify(_body))
     return req({
         method: "POST",
         uri: `${config.url}${_url}`,
@@ -70,6 +72,7 @@ e.post = (_url, _body) => {
 
 e.put = (_url, _body) => {
     logger.info(`PUT :: ${config.url}${_url}`)
+    logger.debug(JSON.stringify(_body))
     return req({
         method: "PUT",
         uri: `${config.url}${_url}`,

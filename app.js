@@ -27,7 +27,7 @@ log4js.configure({
     }
 });
 const logger = log4js.getLogger("ODPCLI");
-logger.level = "info";
+logger.level = process.env.LOGLEVEL ? process.env.LOGLEVEL : "info";
 global.logger = logger;
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
