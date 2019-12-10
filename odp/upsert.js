@@ -17,7 +17,6 @@ e.login = () => {
         .then(_d => cli.pickApp(_d))
         .then(_d => {
             selectedApp = _d;
-            backup.save("app", selectedApp);
         });
 };
 

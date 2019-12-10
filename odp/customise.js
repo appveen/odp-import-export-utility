@@ -11,7 +11,7 @@ var e = {};
 
 e.customBackup = () => {
   backupMapData = require("../backup.map.json");
-  fs.writeFileSync(backupSelectFile, "{}")
+  fs.writeFileSync(backupSelectFile, `{"version":"${global.version}"}`)
   cli.customise()
   .then(() => genericSelectData("Libraries", "library", backupMapData.library))
   .then(() => genericSelectData("Data formats", "dataformat", backupMapData.dataformat))

@@ -1,4 +1,5 @@
 const log4js = require("log4js");
+global.version = require("./package.json").version
 let d = new Date();
 d = d.toISOString().replace(/:/gi, "-")
 let fileName = `odp_backup_restore_${d}.log`
@@ -40,7 +41,7 @@ const backup = require("./utils/backupHandler")
 const misc = require("./utils/misc")
 const cli = require("./cli/cli")
 
-misc.header('ODP Config. Import/Export Utility');
+misc.header(`ODP Config. Import/Export Utility ${global.version}`);
 
 cli.pickMode()
     .then(_mode => {
