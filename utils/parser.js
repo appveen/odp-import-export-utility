@@ -246,6 +246,15 @@ e.repairFlow = _flow => {
         }
       }
     }
+
+    for(_mapNS in map_backup.nanoservice){
+      for(_restoreNS in map_restore.nanoservice){
+        let index = __getIndicesOf(_mapNS, flow)
+        if (index.length) {
+          flow = flow.replace(new RegExp(_mapNS, 'g'), _restoreNS)
+        }
+      }
+    }
     return JSON.parse(flow);
 };
 

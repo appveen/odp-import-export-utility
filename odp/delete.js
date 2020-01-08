@@ -36,6 +36,26 @@ __delete = (_api, _data) => {
     }, new Promise(_res => _res())).then(_ => _data.length);
 }
 
+e.deleteGroups = () => {
+    let URL = `/api/a/rbac/${selectedApp}/group`
+    return api.get(URL, qs).then(
+      _d => {
+        misc.done("Groups", _d.length)
+        __delete(`/api/a/rbac/group`, _d)
+      },
+      _e => misc.error("Error fetching groups", _e))
+}
+
+e.deleteBookmarks = () => {
+    let URL = `/api/a/rbac/app/${selectedApp}/bookmark`
+    return api.get(URL, qs).then(
+      _d => {
+        misc.done("Bookmarks", _d.length)
+        __delete(`/api/a/rbac/app/${selectedApp}/bookmark`, _d)
+      },
+      _e => misc.error("Error fetching bookmars", _e))
+}
+
 e.deletePartners = () => {
     let URL = "/api/a/pm/partner"
     return api.get(URL, qs).then(
@@ -69,8 +89,6 @@ e.deleteDataFormats = () => {
         misc.done("Data formats", _d.length.toString())
     }, _e => misc.error("Error fetching Data formats", _e));
 }
-
-
 
 e.deleteNanoServices = () => {
     let URL = "/api/a/pm/nanoService"
