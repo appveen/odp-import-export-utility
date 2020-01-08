@@ -47,7 +47,7 @@ cli.pickMode()
     .then(_mode => {
         if (_mode == "Backup") _backup()
         if (_mode == "Restore") _restore()
-        // if (_mode == "Delete All") _delete()
+        if (_mode == "Delete All") _delete()
     })
 
 function _backup() {
@@ -76,5 +76,6 @@ function _restore() {
 
 function _delete() {
     odp_delete.login()
-        .then(_ => odp_delete.deleteDataServices());
+        .then(_ => odp_delete.deleteGroups())
+        .then(_ => odp_delete.deleteBookmarks());
 }
