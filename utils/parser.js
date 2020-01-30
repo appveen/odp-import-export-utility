@@ -232,7 +232,7 @@ e.repairFlow = _flow => {
     for(_mapDs in map_backup.dataservice){
       for(_restoreDs in map_restore.dataservice){
         let index = __getIndicesOf(_mapDs, flow)
-        if (index.length) {
+        if (map_backup.dataservice[_mapDs] == map_restore.dataservice[_restoreDs] && index.length) {
           flow = flow.replace(new RegExp(_mapDs, 'g'), _restoreDs)
         }
       }
@@ -241,7 +241,7 @@ e.repairFlow = _flow => {
     for(_mapDF in map_backup.dataformat){
       for(_restoreDF in map_restore.dataformat){
         let index = __getIndicesOf(_mapDF, flow)
-        if (index.length) {
+        if ( map_backup.dataformat[_mapDF] == map_restore.dataformat[_restoreDF] && index.length) {
           flow = flow.replace(new RegExp(_mapDF, 'g'), _restoreDF)
         }
       }
@@ -250,7 +250,7 @@ e.repairFlow = _flow => {
     for(_mapNS in map_backup.nanoservice){
       for(_restoreNS in map_restore.nanoservice){
         let index = __getIndicesOf(_mapNS, flow)
-        if (index.length) {
+        if (map_backup.nanoservice[_mapNS] == map_restore.nanoservice[_restoreNS] && index.length) {
           flow = flow.replace(new RegExp(_mapNS, 'g'), _restoreNS)
         }
       }
