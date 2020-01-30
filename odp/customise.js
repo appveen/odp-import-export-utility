@@ -140,6 +140,7 @@ function selectFlowsFromPartners(){
 function findRelatedConfigsUsedByFlows(){
   let dataFormatsToBackUp = [];
   let dataServicesToBackUp = [];
+  let nanoServicesToBackUp = [];
   let agentsToBackUp = [];
 
   let agentIds = [];
@@ -155,6 +156,9 @@ function findRelatedConfigsUsedByFlows(){
         })
         _f.dataFormat.forEach(_df => {
           if(dataFormatsToBackUp.indexOf(_df) == -1) dataFormatsToBackUp.push(_df)
+        })
+        _f.nanoService.forEach(_df => {
+          if(nanoServicesToBackUp.indexOf(_df) == -1) nanoServicesToBackUp.push(_df)
         })
         let stringifiedFlowData = JSON.stringify(_f);
         agentIds.forEach(_agent => {
@@ -173,6 +177,11 @@ function findRelatedConfigsUsedByFlows(){
   let dataFormatsFromMapFile = backupMapData.dataformat
   dataFormatsToBackUp.forEach(_df => selectedDataFormats[_df] = dataFormatsFromMapFile[_df])
   _writeSelectedData("dataformat", selectedDataFormats)
+
+  let selectedNanoServices = _readSelectedData("nanoservice");
+  let nanoServicesFromMapFile = backupMapData.nanoservice
+  nanoServicesToBackUp.forEach(_ns => selectedNanoServices[_ns] = nanoServicesFromMapFile[_ns])
+  _writeSelectedData("nanoservice", selectedNanoServices)
 
   let selectedAgents = _readSelectedData("agentID");
   let agentIDsFromMapFile = backupMapData.agentID
