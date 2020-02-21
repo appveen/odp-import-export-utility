@@ -284,9 +284,9 @@ function __findGroupSubstituitionPairs(_entity) {
 e.repairGroup = (_app, _group) => {
     _group.roles.forEach(_role => {
         _role.app = _app;
-        if (_role.entity.indexOf("_") > -1)
+        if (_role.entity && _role.entity.indexOf("_") > -1)
             _role.entity = __findGroupSubstituitionPairs(_role.entity);
-        if (_role.type == "appcenter" && _role.entity.indexOf("SRVC") > -1)
+        if (_role.type == "appcenter" && _role.entity && _role.entity.indexOf("SRVC") > -1)
             _role.entity = __getNewID("dataservice", _role.entity);
     });
     return _group;
