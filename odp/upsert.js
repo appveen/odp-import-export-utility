@@ -5,6 +5,8 @@ const backup = require("../utils/backupHandler");
 const parser = require("../utils/parser");
 const generator = require("./generator");
 
+let logger = global.logger
+
 var e = {};
 var selectedApp = null;
 
@@ -164,6 +166,7 @@ e.upsertDataServices = () => {
         if (dependencyMatrix.list[largestRank]) listOfDataServices.push(dependencyMatrix.list[largestRank]);
         largestRank--;
     }
+    logger.info(`listOfDataServices : ${JSON.stringify(listOfDataServices)}`)
     return __createDataServices(listOfDataServices, data)
         .then(_ => __updateDataServices(listOfDataServices, data));
 };

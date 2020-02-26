@@ -4,6 +4,8 @@ const misc = require("../utils/misc");
 const backup = require("../utils/backupHandler");
 require("colors")
 
+let logger = global.logger
+
 var e = {};
 var selectedApp = null;
 var qs = {
@@ -37,9 +39,11 @@ __delete = (_api, _data) => {
 }
 
 e.deleteGroups = () => {
+		logger.info("Deleting groups")
     let URL = `/api/a/rbac/${selectedApp}/group`
     return api.get(URL, qs).then(
       _d => {
+      	logger.info(`Groups to delete : ${JSON.stringify(_d)}`)
         misc.done("Groups", _d.length)
         __delete(`/api/a/rbac/group`, _d)
       },
@@ -47,9 +51,11 @@ e.deleteGroups = () => {
 }
 
 e.deleteBookmarks = () => {
+		logger.info("Deleting groups")
     let URL = `/api/a/rbac/app/${selectedApp}/bookmark`
     return api.get(URL, qs).then(
       _d => {
+      	logger.info(`Bookmarks to delete : ${JSON.stringify(_d)}`)
         misc.done("Bookmarks", _d.length)
         __delete(`/api/a/rbac/app/${selectedApp}/bookmark`, _d)
       },
@@ -65,19 +71,22 @@ e.deletePartners = () => {
 };
 
 e.deleteDataServices = () => {
+		logger.info("Deleting dataservice")
     let URL = "/api/a/sm/service"
     return api.get(URL, qs).then(_d => {
-        return __delete(URL, _d)
-            .then(_len => misc.delete("Data services", _len.toString()));
+    		logger.info(`Dataservices to delete : ${JSON.stringify(_d)}`)
+    		misc.done("Dataservices", _d.length)
+        __delete(URL, _d)
     }, _e => misc.error("Error fetching Data services", _e));
 }
 
 e.deleteLibrary = () => {
+		logger.info("Deleting dataservice")
     let URL = "/api/a/sm/globalSchema"
     return api.get(URL, qs).then(_d => {
-        backup.save("library", _d);
-        _d.forEach(_lib => backup.mapper(`lib.${_lib.name}`, _lib._id))
+        logger.info(`Libraries to delete : ${JSON.stringify(_d)}`)
         misc.done("Libraries", _d.length.toString())
+        __delete(URL, _d)
     }, _e => misc.error("Error fetching libraries", _e));
 }
 

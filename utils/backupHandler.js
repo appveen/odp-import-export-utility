@@ -2,6 +2,8 @@ const fs = require("fs");
 
 var e = {};
 
+let logger = global.logger
+
 e.init = () => {
     fs.writeFileSync("backup.json", `{"version":"${global.version}"}`);
     fs.writeFileSync("backup.map.json", `{"version":"${global.version}"}`);
@@ -24,6 +26,7 @@ e.backupMapper = (_t, _k, _d) => {
     if (!data[_t]) data[_t] = {};
     data[_t][_k] = _d;
     fs.writeFileSync("backup.map.json", JSON.stringify(data));
+    logger.info(`Updated backup.map.json : ${_t} : ${_k} : ${_d}`)
 };
 
 e.restoreMapper = (_t, _k, _d) => {
@@ -32,6 +35,7 @@ e.restoreMapper = (_t, _k, _d) => {
     if (!data[_t]) data[_t] = {};
     data[_t][_k] = _d;
     fs.writeFileSync("restore.map.json", JSON.stringify(data));
+    logger.info(`Updated restore.map.json : ${_t} : ${_k} : ${_d}`)
 };
 
 e.read = _k => {
