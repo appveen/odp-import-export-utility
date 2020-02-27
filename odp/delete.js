@@ -2,6 +2,7 @@ const api = require("../utils/apiHandler")
 const cli = require("../cli/cli");
 const misc = require("../utils/misc");
 const backup = require("../utils/backupHandler");
+const parser = require("../utils/parser");
 require("colors")
 
 let logger = global.logger
@@ -44,7 +45,7 @@ e.deleteGroups = () => {
     return api.get(URL, qs).then(
       _d => {
       	logger.info(`Groups to delete : ${JSON.stringify(_d)}`)
-        misc.done("Groups", _d.length)
+        misc.delete("Groups", _d.length)
         __delete(`/api/a/rbac/group`, _d)
       },
       _e => misc.error("Error fetching groups", _e))
@@ -56,10 +57,39 @@ e.deleteBookmarks = () => {
     return api.get(URL, qs).then(
       _d => {
       	logger.info(`Bookmarks to delete : ${JSON.stringify(_d)}`)
-        misc.done("Bookmarks", _d.length)
+        misc.delete("Bookmarks", _d.length)
         __delete(`/api/a/rbac/app/${selectedApp}/bookmark`, _d)
       },
       _e => misc.error("Error fetching bookmars", _e))
+}
+
+e.deleteDataServices = () => {
+		logger.info("Deleting dataservice")
+    let URL = "/api/a/sm/service"
+    let ds_qs = {
+    	count: -1,
+    	filter: JSON.stringify({"app": selectedApp})
+    }
+    return api.get(URL, ds_qs).then(_data => {
+    	let dependencyMatrix = parser.generateDependencyMatrix(_data);
+	    let largestRank = dependencyMatrix.largestRank;
+	    let listOfDataServices = [];
+	    let i = 0
+	    while (i <= largestRank) {
+	        if (dependencyMatrix.list[i]) listOfDataServices.push(dependencyMatrix.list[i]);
+	        i++;
+	    }
+	    logger.info(`listOfDataServices : ${JSON.stringify(listOfDataServices)}`)
+  		return listOfDataServices.reduce((_prev, _listOfIds) => {
+        return _prev.then(() => {
+            return _listOfIds.reduce((_p, _c) => {
+                return _p.then(_ => {
+                    return api.delete(`${URL}/${_c}`)
+                });
+            }, Promise.resolve());
+        })
+    }, Promise.resolve());
+    }, _e => misc.error("Error fetching Data services", _e));
 }
 
 e.deletePartners = () => {
@@ -69,16 +99,6 @@ e.deletePartners = () => {
             _e => misc.error("Error fetching Partners", _e))
         .then(_d => misc.delete("Partner", _d));
 };
-
-e.deleteDataServices = () => {
-		logger.info("Deleting dataservice")
-    let URL = "/api/a/sm/service"
-    return api.get(URL, qs).then(_d => {
-    		logger.info(`Dataservices to delete : ${JSON.stringify(_d)}`)
-    		misc.done("Dataservices", _d.length)
-        __delete(URL, _d)
-    }, _e => misc.error("Error fetching Data services", _e));
-}
 
 e.deleteLibrary = () => {
 		logger.info("Deleting dataservice")

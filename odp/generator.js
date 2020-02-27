@@ -14,20 +14,20 @@ __generateP = (_role1, _role2, _role3) => {
     return p;
 };
 
-e.generateSampleDataService = (_name, _api, _app) => {
+e.generateSampleDataService = (_data, _app) => {
     let role1 = `P${__rand(10)}`;
     let role2 = `P${__rand(10)}`;
     let role3 = `P${__rand(10)}`;
     return {
-        "name": _name,
-        "api": _api,
+        "name": _data.name,
+        "api": _data.api,
         "app": _app,
         "definition": {
             "_id": {
                 "prefix": "DUM",
                 "suffix": null,
                 "padding": null,
-                "counter": 1001,
+                "counter": JSON.parse(_data.definition)._id.counter,
                 "isPermanentDelete": true,
                 "properties": {
                     "name": "ID",

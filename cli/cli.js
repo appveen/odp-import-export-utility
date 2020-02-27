@@ -5,8 +5,8 @@ inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'))
 
 var e = {}
 
-// const options = ["Backup", "Restore"]
-const options = ["Backup", "Restore", new inquirer.Separator(), "Delete All"]
+const options = ["Backup", "Restore"]
+// const options = ["Backup", "Restore", new inquirer.Separator(), "Delete All"]
 
 e.pickMode = _ => {
   return inquirer.prompt([{

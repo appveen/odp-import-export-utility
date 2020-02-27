@@ -121,6 +121,7 @@ e.repairDataServiceRelations = _dataService => {
         definition: JSON.parse(_dataService.definition),
         versionValidity: _dataService.versionValidity,
         roles: __fetchRoles(_dataService._id),
+        attributeList: _dataService.attributeList,
         wizard: _dataService.wizard,
         preHooks: _dataService.preHooks,
         webHooks: _dataService.webHooks,
@@ -134,6 +135,15 @@ e.repairDataServiceRelations = _dataService => {
     })
     updatedDataService = JSON.parse(updatedDataService);
     updatedDataService._id = __getNewID("dataservice", _dataService._id);
+    
+    // taking care of self relationships. Defect #24
+    let definition = JSON.stringify(updatedDataService.definition).replace(new RegExp(_dataService._id, 'g'), updatedDataService._id)
+    updatedDataService.definition = JSON.parse(definition)
+    
+    let attributeList = JSON.stringify(updatedDataService.attributeList)
+    attributeList = attributeList.replace(new RegExp(_dataService._id, 'g'), updatedDataService._id)
+    updatedDataService.attributeList = JSON.parse(attributeList)
+    
     return updatedDataService;
 };
 
