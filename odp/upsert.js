@@ -16,6 +16,7 @@ e.login = () => {
             misc.print("Logged in as", _d.username);
             return _d.apps;
         })
+    		.then(() => api.get("/api/a/rbac/app?select=name&count=-1"))
         .then(_d => cli.pickApp(_d))
         .then(_d => {
             selectedApp = _d;

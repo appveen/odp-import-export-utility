@@ -15,13 +15,13 @@ var qs = {
     select: "_id"
 };
 
-
 e.login = () => {
     return api.login().then(_d => {
             loginResponse = _d;
             misc.print("Logged in as", _d.username);
             return _d.apps;
         })
+    		.then(() => api.get("/api/a/rbac/app?select=name&count=-1"))
         .then(_d => cli.pickApp(_d))
         .then(_d => {
             selectedApp = _d;
@@ -70,7 +70,12 @@ e.deleteDataServices = () => {
     	count: -1,
     	filter: JSON.stringify({"app": selectedApp})
     }
-    return api.get(URL, ds_qs).then(_data => {
+    return api.put(`api/a/sm/${selectedApp}/service/stop`, {})
+    .then(() => api.get(URL, ds_qs))
+    .then(_data => {
+    	let ids = _data.map(_d => _d._id)
+    	logger.info(`Data services to delete : ${JSON.stringify(ids)}`)
+    	misc.delete("Data services", _data.length)
     	let dependencyMatrix = parser.generateDependencyMatrix(_data);
 	    let largestRank = dependencyMatrix.largestRank;
 	    let listOfDataServices = [];
@@ -90,6 +95,18 @@ e.deleteDataServices = () => {
         })
     }, Promise.resolve());
     }, _e => misc.error("Error fetching Data services", _e));
+}
+
+e.deleteFlows = () => {
+  logger.info("Deleting groups")
+  let URL = `/api/a/pm/flow`
+  return api.get(URL, qs).then(
+    _d => {
+    	logger.info(`Flows to delete : ${JSON.stringify(_d)}`)
+      misc.delete("Flows", _d.length)
+      __delete(`/api/a/rbac/app/${selectedApp}/bookmark`, _d)
+    },
+    _e => misc.error("Error fetching bookmars", _e))
 }
 
 e.deletePartners = () => {
@@ -126,33 +143,6 @@ e.deleteNanoServices = () => {
         _d.forEach(_ds => backup.mapper(`ns.${_ds.name}`, _ds._id))
         misc.done("Nano-services", _d.length.toString())
     }, _e => misc.error("Error fetching nano-services", _e));
-}
-
-e.deleteFlows = () => {
-    backup.save(`flows`, {});
-    var bar = new ProgressBar('Flows [:bar] :percent :current/:total', {
-        complete: '#'.gray,
-        incomplete: ' ',
-        total: flows.length,
-        width: 50
-    });
-    return flows.reduce((_p, _c) => {
-            return _p.then(_ => {
-                return new Promise((_res, _rej) => {
-                    let URL = `/api/a/pm/flow/${_c}`
-                    return api.get(URL).then(_d => {
-                        backup.save(`flows.${_c}`, _d);
-                        backup.mapper(`flow.${_d.name}`, _d._id);
-                        _res();
-                        bar.tick();
-                    }, _e => {
-                        misc.error(`Error fetching Flow ${_c}`, _e)
-                        _rej();
-                    });
-                });
-            });
-        }, new Promise(_res => _res()))
-        .then(_ => misc.done("Flows", flows.length.toString()))
 }
 
 module.exports = e;

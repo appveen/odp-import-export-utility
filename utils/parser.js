@@ -241,15 +241,19 @@ e.repairFlow = _flow => {
     __init();
     let flow = JSON.stringify(_flow);
     let substituitionPairs = __findPartnerAgentSubstituitionPairs(_flow.partner, flow);
+    logger.info(`Parner agent substituition pairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
         flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
+
     substituitionPairs = __findAgentSubstituitionPairs(flow);
+    logger.info(`Agent substituition pairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
         flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
 
     substituitionPairs = __findSubstituitionPairsFromData("partner", map_backup.partner[flow.partner], flow);
+    logger.info(`Partner substituition pairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
         flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
