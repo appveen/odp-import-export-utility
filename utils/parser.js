@@ -1,6 +1,8 @@
 const read = require("fs").readFileSync;
 const backup = require("./backupHandler").read;
 
+let logger = global.logger
+
 var e = {};
 
 var map_backup = {};
@@ -16,6 +18,7 @@ function __init() {
 };
 
 e.generateDependencyMatrix = _dataServices => {
+    logger.info("generateDependencyMatrix() for data services")
     let dependencyMatrix = {
         matrix: {},
         rank: {},
@@ -23,6 +26,7 @@ e.generateDependencyMatrix = _dataServices => {
         list: {}
     };
     _dataServices.forEach(_ds => {
+    		logger.info(`Data service ID : ${_ds._id}`)
         let dataServiceId = _ds._id;
         dependencyMatrix.matrix[dataServiceId] = []
         dependencyMatrix.rank[dataServiceId] = {
@@ -30,11 +34,20 @@ e.generateDependencyMatrix = _dataServices => {
             rank: 0
         };
         if (_ds.relatedSchemas && _ds.relatedSchemas.incoming) {
+        		logger.info(`${_ds._id} has incoming relationships`)
             _ds.relatedSchemas.incoming.forEach(_incoming => {
+            		logger.info(`${_ds._id} :: Incoming relationship :: ${_incoming.service}`)
                 dependencyMatrix.matrix[dataServiceId].push(_incoming.service);
-                if (_incoming.service == dataServiceId) dependencyMatrix.rank[dataServiceId].self = true;
+                if (_incoming.service == dataServiceId) {
+                	logger.info(`${_ds._id} has self-dependency`)
+                	dependencyMatrix.rank[dataServiceId].self = true;
+                }
                 else dependencyMatrix.rank[dataServiceId].rank++;
-                if (dependencyMatrix.largestRank < dependencyMatrix.rank[dataServiceId].rank) dependencyMatrix.largestRank = dependencyMatrix.rank[dataServiceId].rank;
+                logger.info(`Current rank of ${_ds._id} :: ${dependencyMatrix.rank[dataServiceId].rank}`)
+                if (dependencyMatrix.largestRank < dependencyMatrix.rank[dataServiceId].rank) {
+                	dependencyMatrix.largestRank = dependencyMatrix.rank[dataServiceId].rank;
+                	logger.info(`Largest rank is ${dependencyMatrix.largestRank}`)
+                }
             });
         }
     });
@@ -42,6 +55,7 @@ e.generateDependencyMatrix = _dataServices => {
         if (!dependencyMatrix.list[dependencyMatrix.rank[k].rank]) dependencyMatrix.list[dependencyMatrix.rank[k].rank] = [];
         dependencyMatrix.list[dependencyMatrix.rank[k].rank].push(k);
     }
+    logger.info(`${JSON.stringify(dependencyMatrix)}`)
     return dependencyMatrix
 };
 
@@ -107,6 +121,7 @@ e.repairDataServiceRelations = _dataService => {
         definition: JSON.parse(_dataService.definition),
         versionValidity: _dataService.versionValidity,
         roles: __fetchRoles(_dataService._id),
+        attributeList: _dataService.attributeList,
         wizard: _dataService.wizard,
         preHooks: _dataService.preHooks,
         webHooks: _dataService.webHooks,
@@ -114,11 +129,21 @@ e.repairDataServiceRelations = _dataService => {
     };
     updatedDataService = JSON.stringify(updatedDataService);
     let substituitionPairs = __findSubstituitionPairsFromData("dataservice", _dataService.name, updatedDataService);
+    logger.info(`${_dataService.name} :: substituitionPairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
         updatedDataService = updatedDataService.replace(new RegExp(_pair[0], 'g'), _pair[1])
     })
     updatedDataService = JSON.parse(updatedDataService);
     updatedDataService._id = __getNewID("dataservice", _dataService._id);
+    
+    // taking care of self relationships. Defect #24
+    let definition = JSON.stringify(updatedDataService.definition).replace(new RegExp(_dataService._id, 'g'), updatedDataService._id)
+    updatedDataService.definition = JSON.parse(definition)
+    
+    let attributeList = JSON.stringify(updatedDataService.attributeList)
+    attributeList = attributeList.replace(new RegExp(_dataService._id, 'g'), updatedDataService._id)
+    updatedDataService.attributeList = JSON.parse(attributeList)
+    
     return updatedDataService;
 };
 
@@ -216,44 +241,48 @@ e.repairFlow = _flow => {
     __init();
     let flow = JSON.stringify(_flow);
     let substituitionPairs = __findPartnerAgentSubstituitionPairs(_flow.partner, flow);
+    logger.info(`Parner agent substituition pairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
         flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
+
     substituitionPairs = __findAgentSubstituitionPairs(flow);
+    logger.info(`Agent substituition pairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
         flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
 
     substituitionPairs = __findSubstituitionPairsFromData("partner", map_backup.partner[flow.partner], flow);
+    logger.info(`Partner substituition pairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
         flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
 
-    for(_mapDs in map_backup.dataservice){
-      for(_restoreDs in map_restore.dataservice){
-        let index = __getIndicesOf(_mapDs, flow)
-        if (map_backup.dataservice[_mapDs] == map_restore.dataservice[_restoreDs] && index.length) {
-          flow = flow.replace(new RegExp(_mapDs, 'g'), _restoreDs)
+    for (_mapDs in map_backup.dataservice) {
+        for (_restoreDs in map_restore.dataservice) {
+            let index = __getIndicesOf(_mapDs, flow)
+            if (map_backup.dataservice[_mapDs] == map_restore.dataservice[_restoreDs] && index.length) {
+                flow = flow.replace(new RegExp(_mapDs, 'g'), _restoreDs)
+            }
         }
-      }
     }
 
-    for(_mapDF in map_backup.dataformat){
-      for(_restoreDF in map_restore.dataformat){
-        let index = __getIndicesOf(_mapDF, flow)
-        if ( map_backup.dataformat[_mapDF] == map_restore.dataformat[_restoreDF] && index.length) {
-          flow = flow.replace(new RegExp(_mapDF, 'g'), _restoreDF)
+    for (_mapDF in map_backup.dataformat) {
+        for (_restoreDF in map_restore.dataformat) {
+            let index = __getIndicesOf(_mapDF, flow)
+            if (map_backup.dataformat[_mapDF] == map_restore.dataformat[_restoreDF] && index.length) {
+                flow = flow.replace(new RegExp(_mapDF, 'g'), _restoreDF)
+            }
         }
-      }
     }
 
-    for(_mapNS in map_backup.nanoservice){
-      for(_restoreNS in map_restore.nanoservice){
-        let index = __getIndicesOf(_mapNS, flow)
-        if (map_backup.nanoservice[_mapNS] == map_restore.nanoservice[_restoreNS] && index.length) {
-          flow = flow.replace(new RegExp(_mapNS, 'g'), _restoreNS)
+    for (_mapNS in map_backup.nanoservice) {
+        for (_restoreNS in map_restore.nanoservice) {
+            let index = __getIndicesOf(_mapNS, flow)
+            if (map_backup.nanoservice[_mapNS] == map_restore.nanoservice[_restoreNS] && index.length) {
+                flow = flow.replace(new RegExp(_mapNS, 'g'), _restoreNS)
+            }
         }
-      }
     }
     return JSON.parse(flow);
 };

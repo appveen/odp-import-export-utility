@@ -77,5 +77,8 @@ function _restore() {
 function _delete() {
     odp_delete.login()
         .then(_ => odp_delete.deleteGroups())
-        .then(_ => odp_delete.deleteBookmarks());
+        .then(_ => odp_delete.deleteBookmarks())
+        .then(_ => odp_delete.deleteFlows())
+        .then(_ => odp_delete.deleteDataServices())
+        .then(_ => odp_delete.deleteLibrary());
 }

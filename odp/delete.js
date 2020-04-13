@@ -2,7 +2,10 @@ const api = require("../utils/apiHandler")
 const cli = require("../cli/cli");
 const misc = require("../utils/misc");
 const backup = require("../utils/backupHandler");
+const parser = require("../utils/parser");
 require("colors")
+
+let logger = global.logger
 
 var e = {};
 var selectedApp = null;
@@ -12,13 +15,13 @@ var qs = {
     select: "_id"
 };
 
-
 e.login = () => {
     return api.login().then(_d => {
             loginResponse = _d;
             misc.print("Logged in as", _d.username);
             return _d.apps;
         })
+    		.then(() => api.get("/api/a/rbac/app?select=name&count=-1"))
         .then(_d => cli.pickApp(_d))
         .then(_d => {
             selectedApp = _d;
@@ -37,23 +40,73 @@ __delete = (_api, _data) => {
 }
 
 e.deleteGroups = () => {
+		logger.info("Deleting groups")
     let URL = `/api/a/rbac/${selectedApp}/group`
     return api.get(URL, qs).then(
       _d => {
-        misc.done("Groups", _d.length)
+      	logger.info(`Groups to delete : ${JSON.stringify(_d)}`)
+        misc.delete("Groups", _d.length)
         __delete(`/api/a/rbac/group`, _d)
       },
       _e => misc.error("Error fetching groups", _e))
 }
 
 e.deleteBookmarks = () => {
+		logger.info("Deleting groups")
     let URL = `/api/a/rbac/app/${selectedApp}/bookmark`
     return api.get(URL, qs).then(
       _d => {
-        misc.done("Bookmarks", _d.length)
+      	logger.info(`Bookmarks to delete : ${JSON.stringify(_d)}`)
+        misc.delete("Bookmarks", _d.length)
         __delete(`/api/a/rbac/app/${selectedApp}/bookmark`, _d)
       },
       _e => misc.error("Error fetching bookmars", _e))
+}
+
+e.deleteDataServices = () => {
+		logger.info("Deleting dataservice")
+    let URL = "/api/a/sm/service"
+    let ds_qs = {
+    	count: -1,
+    	filter: JSON.stringify({"app": selectedApp})
+    }
+    return api.put(`api/a/sm/${selectedApp}/service/stop`, {})
+    .then(() => api.get(URL, ds_qs))
+    .then(_data => {
+    	let ids = _data.map(_d => _d._id)
+    	logger.info(`Data services to delete : ${JSON.stringify(ids)}`)
+    	misc.delete("Data services", _data.length)
+    	let dependencyMatrix = parser.generateDependencyMatrix(_data);
+	    let largestRank = dependencyMatrix.largestRank;
+	    let listOfDataServices = [];
+	    let i = 0
+	    while (i <= largestRank) {
+	        if (dependencyMatrix.list[i]) listOfDataServices.push(dependencyMatrix.list[i]);
+	        i++;
+	    }
+	    logger.info(`listOfDataServices : ${JSON.stringify(listOfDataServices)}`)
+  		return listOfDataServices.reduce((_prev, _listOfIds) => {
+        return _prev.then(() => {
+            return _listOfIds.reduce((_p, _c) => {
+                return _p.then(_ => {
+                    return api.delete(`${URL}/${_c}`)
+                });
+            }, Promise.resolve());
+        })
+    }, Promise.resolve());
+    }, _e => misc.error("Error fetching Data services", _e));
+}
+
+e.deleteFlows = () => {
+  logger.info("Deleting groups")
+  let URL = `/api/a/pm/flow`
+  return api.get(URL, qs).then(
+    _d => {
+    	logger.info(`Flows to delete : ${JSON.stringify(_d)}`)
+      misc.delete("Flows", _d.length)
+      __delete(`/api/a/rbac/app/${selectedApp}/bookmark`, _d)
+    },
+    _e => misc.error("Error fetching bookmars", _e))
 }
 
 e.deletePartners = () => {
@@ -64,20 +117,13 @@ e.deletePartners = () => {
         .then(_d => misc.delete("Partner", _d));
 };
 
-e.deleteDataServices = () => {
-    let URL = "/api/a/sm/service"
-    return api.get(URL, qs).then(_d => {
-        return __delete(URL, _d)
-            .then(_len => misc.delete("Data services", _len.toString()));
-    }, _e => misc.error("Error fetching Data services", _e));
-}
-
 e.deleteLibrary = () => {
+		logger.info("Deleting dataservice")
     let URL = "/api/a/sm/globalSchema"
     return api.get(URL, qs).then(_d => {
-        backup.save("library", _d);
-        _d.forEach(_lib => backup.mapper(`lib.${_lib.name}`, _lib._id))
+        logger.info(`Libraries to delete : ${JSON.stringify(_d)}`)
         misc.done("Libraries", _d.length.toString())
+        __delete(URL, _d)
     }, _e => misc.error("Error fetching libraries", _e));
 }
 
@@ -97,33 +143,6 @@ e.deleteNanoServices = () => {
         _d.forEach(_ds => backup.mapper(`ns.${_ds.name}`, _ds._id))
         misc.done("Nano-services", _d.length.toString())
     }, _e => misc.error("Error fetching nano-services", _e));
-}
-
-e.deleteFlows = () => {
-    backup.save(`flows`, {});
-    var bar = new ProgressBar('Flows [:bar] :percent :current/:total', {
-        complete: '#'.gray,
-        incomplete: ' ',
-        total: flows.length,
-        width: 50
-    });
-    return flows.reduce((_p, _c) => {
-            return _p.then(_ => {
-                return new Promise((_res, _rej) => {
-                    let URL = `/api/a/pm/flow/${_c}`
-                    return api.get(URL).then(_d => {
-                        backup.save(`flows.${_c}`, _d);
-                        backup.mapper(`flow.${_d.name}`, _d._id);
-                        _res();
-                        bar.tick();
-                    }, _e => {
-                        misc.error(`Error fetching Flow ${_c}`, _e)
-                        _rej();
-                    });
-                });
-            });
-        }, new Promise(_res => _res()))
-        .then(_ => misc.done("Flows", flows.length.toString()))
 }
 
 module.exports = e;

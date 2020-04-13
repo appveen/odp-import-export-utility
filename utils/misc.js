@@ -18,8 +18,8 @@ e.done = (_msg, _count, _restore) => {
 };
 
 e.delete = (_msg, _count) => {
-    logger.info(`Deleted ${_count} ${_msg}`);
-    console.log(`Deleted ${_count.yellow} ${_msg.red}`);
+    logger.info(`Deleted  ${padCount(_count)} ${_msg}`);
+    console.log(`  ${padCount(_count).yellow} ${_msg.red}`);
 };
 
 e.error = (_pre, _post) => {

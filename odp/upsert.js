@@ -5,6 +5,8 @@ const backup = require("../utils/backupHandler");
 const parser = require("../utils/parser");
 const generator = require("./generator");
 
+let logger = global.logger
+
 var e = {};
 var selectedApp = null;
 
@@ -14,6 +16,7 @@ e.login = () => {
             misc.print("Logged in as", _d.username);
             return _d.apps;
         })
+    		.then(() => api.get("/api/a/rbac/app?select=name&count=-1"))
         .then(_d => cli.pickApp(_d))
         .then(_d => {
             selectedApp = _d;
@@ -121,7 +124,7 @@ function __createDataServices(_listOfDataServices, _data) {
                     _data.forEach(_d => {
                         if (_d._id == _c) data = _d;
                     });
-                    data = generator.generateSampleDataService(data.name, data.api, selectedApp);
+                    data = generator.generateSampleDataService(data, selectedApp);
                     return __exists("/api/a/sm/service", data.name, null)
                         .then(_d => {
                             if (!_d) {
@@ -157,13 +160,14 @@ function __updateDataServices(_listOfDataServices, _data) {
 e.upsertDataServices = () => {
     misc.header("Data services")
     var data = backup.read("dataservices");
-    dependencyMatrix = parser.generateDependencyMatrix(data);
+    let dependencyMatrix = parser.generateDependencyMatrix(data);
     let largestRank = dependencyMatrix.largestRank;
     let listOfDataServices = [];
     while (largestRank >= 0) {
         if (dependencyMatrix.list[largestRank]) listOfDataServices.push(dependencyMatrix.list[largestRank]);
         largestRank--;
     }
+    logger.info(`listOfDataServices : ${JSON.stringify(listOfDataServices)}`)
     return __createDataServices(listOfDataServices, data)
         .then(_ => __updateDataServices(listOfDataServices, data));
 };
