@@ -1,5 +1,4 @@
 const jsonIO = require("./json-io");
-const read = require("fs").readFileSync;
 const backup = require("./backupHandler").read;
 
 let logger = global.logger
