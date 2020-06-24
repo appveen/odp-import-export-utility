@@ -67,3 +67,4 @@ backup.tmp.json
 backup.tmp.map.json
 restore.map.json
 clear.sh
+.vscode

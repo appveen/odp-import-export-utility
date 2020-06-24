@@ -1,8 +1,18 @@
 const req = require("request-promise");
-const config = require("../config.json");
 const misc = require("./misc")
+const jsonIO = require("./json-io")
 
-var logger = global.logger;
+const logger = global.logger;
+
+let config;
+try {
+    config = jsonIO.readJSON('config.json');
+} catch (e) {
+    logger.error(e);
+    process.exit(0);
+}
+
+
 
 var e = {};
 var token = null;
@@ -25,7 +35,7 @@ e.login = () => {
             logger.error(`Unable to login to ${config.name}`);
             logger.error(_e.message)
             console.log(`Unable to login to ${config.name}`)
-            misc.error("Error",_e.message)
+            misc.error("Error", _e.message)
             process.exit()
         }
     );

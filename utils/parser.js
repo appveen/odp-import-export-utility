@@ -1,4 +1,4 @@
-const read = require("fs").readFileSync;
+const jsonIO = require("./json-io");
 const backup = require("./backupHandler").read;
 
 let logger = global.logger
@@ -10,10 +10,8 @@ var map_restore = {};
 var roles = {};
 
 function __init() {
-    map_backup = read("backup.map.json");
-    map_backup = JSON.parse(map_backup);
-    map_restore = read("restore.map.json");
-    map_restore = JSON.parse(map_restore);
+    map_backup = jsonIO.readJSON("backup.map.json");
+    map_restore = jsonIO.readJSON("restore.map.json");
     roles = backup("dataserviceroles");
 };
 
@@ -26,7 +24,7 @@ e.generateDependencyMatrix = _dataServices => {
         list: {}
     };
     _dataServices.forEach(_ds => {
-    		logger.info(`Data service ID : ${_ds._id}`)
+        logger.info(`Data service ID : ${_ds._id}`)
         let dataServiceId = _ds._id;
         dependencyMatrix.matrix[dataServiceId] = []
         dependencyMatrix.rank[dataServiceId] = {
@@ -34,19 +32,19 @@ e.generateDependencyMatrix = _dataServices => {
             rank: 0
         };
         if (_ds.relatedSchemas && _ds.relatedSchemas.incoming) {
-        		logger.info(`${_ds._id} has incoming relationships`)
+            logger.info(`${_ds._id} has incoming relationships`)
             _ds.relatedSchemas.incoming.forEach(_incoming => {
-            		logger.info(`${_ds._id} :: Incoming relationship :: ${_incoming.service}`)
+                logger.info(`${_ds._id} :: Incoming relationship :: ${_incoming.service}`)
                 dependencyMatrix.matrix[dataServiceId].push(_incoming.service);
                 if (_incoming.service == dataServiceId) {
-                	logger.info(`${_ds._id} has self-dependency`)
-                	dependencyMatrix.rank[dataServiceId].self = true;
+                    logger.info(`${_ds._id} has self-dependency`)
+                    dependencyMatrix.rank[dataServiceId].self = true;
                 }
                 else dependencyMatrix.rank[dataServiceId].rank++;
                 logger.info(`Current rank of ${_ds._id} :: ${dependencyMatrix.rank[dataServiceId].rank}`)
                 if (dependencyMatrix.largestRank < dependencyMatrix.rank[dataServiceId].rank) {
-                	dependencyMatrix.largestRank = dependencyMatrix.rank[dataServiceId].rank;
-                	logger.info(`Largest rank is ${dependencyMatrix.largestRank}`)
+                    dependencyMatrix.largestRank = dependencyMatrix.rank[dataServiceId].rank;
+                    logger.info(`Largest rank is ${dependencyMatrix.largestRank}`)
                 }
             });
         }
@@ -135,15 +133,15 @@ e.repairDataServiceRelations = _dataService => {
     })
     updatedDataService = JSON.parse(updatedDataService);
     updatedDataService._id = __getNewID("dataservice", _dataService._id);
-    
+
     // taking care of self relationships. Defect #24
     let definition = JSON.stringify(updatedDataService.definition).replace(new RegExp(_dataService._id, 'g'), updatedDataService._id)
     updatedDataService.definition = JSON.parse(definition)
-    
+
     let attributeList = JSON.stringify(updatedDataService.attributeList)
     attributeList = attributeList.replace(new RegExp(_dataService._id, 'g'), updatedDataService._id)
     updatedDataService.attributeList = JSON.parse(attributeList)
-    
+
     return updatedDataService;
 };
 
