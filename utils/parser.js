@@ -112,6 +112,16 @@ function __findSubstituitionPairsFromData(_key, _name, _data) {
     return substituitionPairs;
 };
 
+function __replace(_replacements, _data) {
+	_replacements.forEach(_replacement => {
+		logger.info(JSON.stringify(_replacement))
+  	_replacement[2].forEach(_location => {
+  		_data = _data.substring(0, _location) + _replacement[1] + _data.substring(_location + _replacement[0].length)
+  	})
+  })
+  return _data
+}
+
 e.repairDataServiceRelations = _dataService => {
     var updatedDataService = {
         name: _dataService.name,
@@ -128,9 +138,12 @@ e.repairDataServiceRelations = _dataService => {
     updatedDataService = JSON.stringify(updatedDataService);
     let substituitionPairs = __findSubstituitionPairsFromData("dataservice", _dataService.name, updatedDataService);
     logger.info(`${_dataService.name} :: substituitionPairs :: ${JSON.stringify(substituitionPairs)}`)
+    let replacements = []
     substituitionPairs.forEach(_pair => {
-        updatedDataService = updatedDataService.replace(new RegExp(_pair[0], 'g'), _pair[1])
+      let index = __getIndicesOf(_pair[0], updatedDataService)
+    	replacements.push([_pair[0], _pair[1], index])
     })
+    updatedDataService = __replace(replacements, updatedDataService)
     updatedDataService = JSON.parse(updatedDataService);
     updatedDataService._id = __getNewID("dataservice", _dataService._id);
 
@@ -154,9 +167,12 @@ e.repairDataServiceRoles = _role => {
 e.repairDataServiceLibrary = _dataService => {
     let updatedDataService = JSON.stringify(_dataService);
     let substituitionPairs = __findSubstituitionPairsFromData("library", _dataService.name, updatedDataService);
+    let replacements = []
     substituitionPairs.forEach(_pair => {
-        updatedDataService = updatedDataService.replace(new RegExp(_pair[0], 'g'), _pair[1])
+      let index = __getIndicesOf(_pair[0], updatedDataService)
+    	replacements.push([_pair[0], _pair[1], index])
     });
+    updatedDataService = __replace(replacements, updatedDataService)
     updatedDataService = JSON.parse(updatedDataService);
     return updatedDataService;
 };
@@ -164,13 +180,17 @@ e.repairDataServiceLibrary = _dataService => {
 e.repairNanoService = _nanoService => {
     let nanoService = JSON.stringify(_nanoService);
     let substituitionPairs = __findSubstituitionPairsFromData("dataformat", null, nanoService);
+    let replacements = []
     substituitionPairs.forEach(_pair => {
-        nanoService = nanoService.replace(new RegExp(_pair[0], 'g'), _pair[1])
+    	let index = __getIndicesOf(_pair[0], nanoService)
+    	replacements.push([_pair[0], _pair[1], index])
     });
     substituitionPairs = __findSubstituitionPairsFromData("dataservice", null, nanoService);
     substituitionPairs.forEach(_pair => {
-        nanoService = nanoService.replace(new RegExp(_pair[0], 'g'), _pair[1])
+      let index = __getIndicesOf(_pair[0], nanoService)
+    	replacements.push([_pair[0], _pair[1], index])
     });
+    nanoService = __replace(replacements, nanoService)
     return JSON.parse(nanoService);
 };
 
@@ -241,47 +261,50 @@ e.repairFlow = _flow => {
     let substituitionPairs = __findPartnerAgentSubstituitionPairs(_flow.partner, flow);
     logger.info(`Parner agent substituition pairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
-        flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
+      flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
 
     substituitionPairs = __findAgentSubstituitionPairs(flow);
     logger.info(`Agent substituition pairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
-        flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
+      flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
 
     substituitionPairs = __findSubstituitionPairsFromData("partner", map_backup.partner[flow.partner], flow);
     logger.info(`Partner substituition pairs :: ${JSON.stringify(substituitionPairs)}`)
     substituitionPairs.forEach(_pair => {
-        flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
+      flow = flow.replace(new RegExp(_pair[0], 'g'), _pair[1])
     });
 
+    let replacements = []
     for (_mapDs in map_backup.dataservice) {
         for (_restoreDs in map_restore.dataservice) {
             let index = __getIndicesOf(_mapDs, flow)
             if (map_backup.dataservice[_mapDs] == map_restore.dataservice[_restoreDs] && index.length) {
-                flow = flow.replace(new RegExp(_mapDs, 'g'), _restoreDs)
+              flow = flow.replace(new RegExp(_mapDs, 'g'), _restoreDs)
             }
         }
     }
 
     for (_mapDF in map_backup.dataformat) {
-        for (_restoreDF in map_restore.dataformat) {
-            let index = __getIndicesOf(_mapDF, flow)
-            if (map_backup.dataformat[_mapDF] == map_restore.dataformat[_restoreDF] && index.length) {
-                flow = flow.replace(new RegExp(_mapDF, 'g'), _restoreDF)
-            }
+      for (_restoreDF in map_restore.dataformat) {
+        let index = __getIndicesOf(_mapDF, flow)
+        if (map_backup.dataformat[_mapDF] == map_restore.dataformat[_restoreDF] && index.length) {
+        	replacements.push([_mapDF, _restoreDF, index])
         }
+      }
     }
 
     for (_mapNS in map_backup.nanoservice) {
-        for (_restoreNS in map_restore.nanoservice) {
-            let index = __getIndicesOf(_mapNS, flow)
-            if (map_backup.nanoservice[_mapNS] == map_restore.nanoservice[_restoreNS] && index.length) {
-                flow = flow.replace(new RegExp(_mapNS, 'g'), _restoreNS)
-            }
+      for (_restoreNS in map_restore.nanoservice) {
+        let index = __getIndicesOf(_mapNS, flow)
+        if (map_backup.nanoservice[_mapNS] == map_restore.nanoservice[_restoreNS] && index.length) {
+        	replacements.push([_mapNS, _restoreNS, index])
         }
+      }
     }
+
+    flow = __replace(replacements, flow)
     return JSON.parse(flow);
 };
 

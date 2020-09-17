@@ -31,6 +31,35 @@ const logger = log4js.getLogger("ODPCLI");
 logger.level = process.env.LOGLEVEL ? process.env.LOGLEVEL : "info";
 global.logger = logger;
 
+let dataFileName = `odp_backup_restore_${d}_data.log`
+// log4js.configure({
+//     appenders: {
+//         fileOut: {
+//             type: 'file',
+//             filename: dataFileName,
+//             maxLogSize: 500000,
+//             layout: {
+//                 type: 'basic'
+//             }
+//         },
+//         out: {
+//             type: 'stdout',
+//             layout: {
+//                 type: 'basic'
+//             }
+//         }
+//     },
+//     categories: {
+//         default: {
+//             appenders: ['fileOut'],
+//             level: 'error'
+//         }
+//     }
+// });
+// const dataLogger = log4js.getLogger("ODPCLI-DATA");
+// dataLogger.level = process.env.LOGLEVEL ? process.env.LOGLEVEL : "info";
+// global.dataLogger = dataLogger;
+
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 const odp_fetch = require("./odp/fetch")
@@ -54,6 +83,7 @@ function _backup() {
     backup.init();
     odp_fetch.login()
     .then(() => odp_fetch.startMapping())
+    .then(() => clearInterval(global.refreshIntervalID))
     .then(() => odp_customise.customBackup())
 }
 
@@ -71,6 +101,7 @@ function _restore() {
         .then(() => odp_upsert.upsertFlows())
         .then(() => odp_upsert.upsertBookmarks())
         .then(() => odp_upsert.upsertGroups())
+        .then(() => clearInterval(global.refreshIntervalID))
         .then(() => misc.header('Restore complete!'))
 }
 
@@ -80,5 +111,6 @@ function _delete() {
         .then(_ => odp_delete.deleteBookmarks())
         .then(_ => odp_delete.deleteFlows())
         .then(_ => odp_delete.deleteDataServices())
-        .then(_ => odp_delete.deleteLibrary());
+        .then(_ => odp_delete.deleteLibrary())
+        .then(() => clearInterval(global.refreshIntervalID));
 }

@@ -3,6 +3,7 @@ const misc = require("./misc")
 const jsonIO = require("./json-io")
 
 const logger = global.logger;
+// const dataLogger = global.dataLogger;
 
 let config;
 try {
@@ -12,34 +13,47 @@ try {
     process.exit(0);
 }
 
-
-
 var e = {};
 var token = null;
+var refreshActive = false;
 
 e.login = () => {
     misc.print("Server    :", `${config.name}(${config.url})`)
-    logger.info(`User ${config.username} logging into ${config.name}`);
-    return req({
-        uri: `${config.url}/api/a/rbac/login`,
-        method: "POST",
-        json: true,
-        body: config,
-    }).then(
-        _d => {
-            logger.info(`User ${config.username} logged into ${config.name} successfully`)
-            token = _d.token;
-            return _d;
-        },
-        _e => {
-            logger.error(`Unable to login to ${config.name}`);
-            logger.error(_e.message)
-            console.log(`Unable to login to ${config.name}`)
-            misc.error("Error", _e.message)
-            process.exit()
-        }
-    );
+    return __login()
 };
+
+function __login(){
+	logger.info(`User ${config.username} logging into ${config.name}`);
+  return req({
+    uri: `${config.url}/api/a/rbac/login`,
+    method: "POST",
+    json: true,
+    body: config,
+  }).then(
+    _d => {
+        logger.info(`User ${config.username} logged into ${config.name} successfully`)
+        logger.info(`User session duration ${_d.rbacUserTokenDuration}`)
+        if (!refreshActive ) {
+        	refreshActive = true
+        	__refreshToken(_d.rbacUserTokenDuration)
+        }
+        token = _d.token;
+        return _d;
+    },
+    _e => {
+        logger.error(`Unable to login to ${config.name}`);
+        logger.error(_e.message)
+        console.log(`Unable to login to ${config.name}`)
+        misc.error("Error", _e.message)
+        process.exit()
+    }
+  );
+}
+
+function __refreshToken(_duration){
+	logger.info("Refreshing user session")
+	global.refreshIntervalID = setInterval(__login, (_duration - 10) * 1000)
+}
 
 e.get = (_url, _qs) => {
     logger.info(`GET :: ${config.url}${_url}`)
@@ -62,7 +76,7 @@ e.get = (_url, _qs) => {
 
 e.post = (_url, _body) => {
     logger.info(`POST :: ${config.url}${_url}`)
-    logger.debug(JSON.stringify(_body))
+    // dataLogger.debug(JSON.stringify(_body))
     return req({
         method: "POST",
         uri: `${config.url}${_url}`,
@@ -82,7 +96,7 @@ e.post = (_url, _body) => {
 
 e.put = (_url, _body) => {
     logger.info(`PUT :: ${config.url}${_url}`)
-    logger.debug(JSON.stringify(_body))
+    // dataLogger.debug(JSON.stringify(_body))
     return req({
         method: "PUT",
         uri: `${config.url}${_url}`,

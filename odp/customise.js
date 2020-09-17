@@ -11,7 +11,7 @@ var allconfigData = null;
 var e = {};
 
 e.customBackup = () => {
-  backupMapData = jsonIO.read("backup.map.json");
+  backupMapData = jsonIO.readJSON("backup.map.json");
   jsonIO.writeJSON(backupSelectFile, `{"version":"${global.version}"}`);
   cli.customise()
     .then(() => genericSelectData("Libraries", "library", backupMapData.library))
