@@ -65,6 +65,8 @@ backup.map.json
 backup.select.json
 backup.tmp.json
 backup.tmp.map.json
+restore.json
 restore.map.json
 clear.sh
-.vscode
+.vscoderm *.log
+restore.sh

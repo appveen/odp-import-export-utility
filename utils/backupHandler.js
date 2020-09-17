@@ -11,6 +11,7 @@ e.init = () => {
 
 e.restoreInit = () => {
     jsonIO.writeJSON("restore.map.json", `{"version":"${global.version}"}`);
+    jsonIO.writeJSON("restore.json", `{"version":"${global.version}"}`);
 }
 
 e.save = (_k, _d) => {

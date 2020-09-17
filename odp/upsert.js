@@ -149,6 +149,8 @@ function __updateDataServices(_listOfDataServices, _data) {
                 return _p.then(_ => {
                     let dataService = parser.repairDataServiceRelations(data);
                     dataService = parser.repairDataServiceLibrary(dataService);
+                    // dataService.webHooks = [];
+                    // dataService.preHooks = [];
                     return api.put("/api/a/sm/service/" + dataService._id, dataService)
                         .then(_d => misc.restore("Data service", _d));
                 });
