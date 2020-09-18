@@ -3,12 +3,11 @@ Command-line based ODP configuration import-export utility.
 
 # Installation
 
-1. Clone the repository- `git clone https://github.com/appveen/odp-import-export-utility.git`
-2. Do `npm install`
+Download the required executable from the releases page.
 
-# Configure
+# Run
 
-Update the `config.json` with the connection details of your server,
+Create a file called `config.json` with the connection details of your server,
 
 ```json
 {
@@ -19,9 +18,8 @@ Update the `config.json` with the connection details of your server,
 }
 ```
 
-# Run
+Make sure that this file is in the same location as the executable which you downloaded.
 
-1. Run the utility by issuing the command - `node app.js` or `LOGLEVEL=DEBUG node app.js` to run in debug mode
-2. Follow the on-screen instructions.
+Run the executable.
 
 ~ 🍻~

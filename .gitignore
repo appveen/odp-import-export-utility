@@ -70,3 +70,4 @@ restore.map.json
 clear.sh
 .vscoderm *.log
 restore.sh
+builds/*
